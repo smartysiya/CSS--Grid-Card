@@ -11,8 +11,24 @@
     --transition: cubic-bezier(.1,.7,0,1);
     --gap-base:.2rem;
     --shift: 0px; /* container shift when opening edge items */
+    /* Theme variables */
+    --bg: #141414;
+    --card-bg: #222;
+    --card-radius: 100px;
+    --text-color: #ffffff;
+    --control-bg: rgba(255,255,255,0.06);
+    --control-fg: #ffffff;
   }
-  body{background:#141414;min-height:100vh;overflow:visible}
+  /* Light theme overrides */
+  [data-theme="light"]{
+    --bg: #f6f6f8;
+    --card-bg: #efefef;
+    --card-radius: 18px;
+    --text-color: #111214;
+    --control-bg: rgba(0,0,0,0.06);
+    --control-fg: #111214;
+  }
+  body{background:var(--bg);color:var(--text-color);min-height:100vh;overflow:visible}
   .wrapper{
     height:100vh;display:flex;align-items:center;justify-content:center;overflow:visible
   }
@@ -37,14 +53,15 @@
     position:relative;
     width: calc(var(--index) * 3);
     height: calc(var(--index) * 18);
-    background:#222 center/cover no-repeat;
+    background-color:var(--card-bg);
+    background-position:center; background-size:cover; background-repeat:no-repeat;
     cursor:pointer;
     transition: transform 1.25s var(--transition), width .5s var(--transition);
     transform-style: preserve-3d;
     backface-visibility:hidden;
     will-change: transform, width;
     outline:none;
-    border-radius:100px;
+    border-radius:var(--card-radius);
     flex:0 0 auto;
     user-select:none;
   }
@@ -70,6 +87,12 @@
   }
 
   html, body, .wrapper, .items { overflow: visible !important; }
+  /* theme toggle button */
+  #theme-toggle{
+    position:fixed; right:12px; top:12px; z-index:1000;
+    background:var(--control-bg); color:var(--control-fg); border:0; padding:8px 10px; border-radius:8px; cursor:pointer;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+  }
 </style>
 </head>
 <body>
@@ -89,6 +112,8 @@
       <div class="item" tabindex="0" style="background-image:url(https://picsum.photos/seed/f12/1200/1800)"></div>
     </div>
   </div>
+
+  <button id="theme-toggle" aria-label="Toggle theme"> </button>
 
 <script>
 (function(){
@@ -262,6 +287,30 @@
   metric();
 
   container.addEventListener('dragstart', e=>e.preventDefault());
+})();
+</script>
+</script>
+
+<script>
+// Theme toggle: persist selection and respect system preference
+(function(){
+  function initThemeToggle(){
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    const stored = localStorage.getItem('cards-theme');
+    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    const initial = stored || (prefersLight ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', initial);
+    btn.textContent = initial === 'light' ? '🌙' : '☀️';
+    btn.addEventListener('click', ()=>{
+      const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      const next = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('cards-theme', next);
+      btn.textContent = next === 'light' ? '🌙' : '☀️';
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initThemeToggle); else initThemeToggle();
 })();
 </script>
 </body>
