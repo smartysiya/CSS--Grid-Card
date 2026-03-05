@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,7 +10,7 @@
     --index: calc(1vw + 1vh);
     --transition: cubic-bezier(.1,.7,0,1);
     --gap-base:.2rem;
-    --shift: 0px; /* сдвиг контейнера при открытии крайних */
+    --shift: 0px; /* container shift when opening edge items */
   }
   body{background:#141414;min-height:100vh;overflow:visible}
   .wrapper{
@@ -27,7 +27,7 @@
     will-change: transform;
     overflow: visible;
     transition: transform .6s var(--transition);
-    /* расширяем hit-area у краёв, чтобы указатель не «выпадал» */
+    /* expand hit-area at edges to prevent pointer from falling out */
     padding-inline:48px;
     margin-inline:-48px;
   }
@@ -106,11 +106,11 @@
   let openIndex = -1;
   let hoverIndex = -1;
 
-  // Статическая равномерная сетка + направленная гистерезис
+  // Static uniform grid + directional hysteresis
   let padLeft = 0;
   let firstCenter = 0;
   let step = 0;               // itemWidth + gap
-  let epsBase = 12;           // базовый deadband
+  let epsBase = 12;           // base deadband
   let prevX = null, prevT = 0;
 
   function metric(){
@@ -167,15 +167,15 @@
     clearClasses();
   }
 
-  // включаем hover и пересчитываем сетку после применения уменьшенного gap
+  // enable hover and recalculate grid after reduced gap
   function ensureHoveringOnce(){
     if (container.classList.contains('hovering')) return;
     container.classList.add('hovering');
-    // один reflow для точной сетки при уменьшенном gap
+    // one reflow for accurate grid after reduced gap
     requestAnimationFrame(metric);
   }
 
-  // динамическая направленная гистерезис: меньше при быстром движении
+  // dynamic directional hysteresis: smaller when moving fast
   function effectiveEPS(x){
     if (prevX == null) return epsBase;
     const dx = Math.abs(x - prevX);
@@ -183,7 +183,7 @@
     const dt = Math.max(1, now - (prevT || now));
     const v = dx / dt;                 // px/ms
     prevT = now;
-    // чем быстрее двигаемся, тем меньше deadband, но не ниже 40% базового
+    // the faster we move, the smaller the deadband, but not below 40% of base
     const k = clamp(1 - v*0.8, 0.4, 1);
     return epsBase * k;
   }
@@ -199,10 +199,10 @@
     ensureHoveringOnce();
 
     const rect = container.getBoundingClientRect();
-    const x = e.clientX - rect.left - padLeft; // локальная координата
+    const x = e.clientX - rect.left - padLeft; // local coordinate
     const idxRaw = indexFromX(x);
 
-    // направленная логика вокруг текущего центра
+    // directional logic around current center
     let idx = idxRaw;
     if (hoverIndex >= 0){
       const c = centerFor(hoverIndex);
@@ -220,7 +220,7 @@
     }
   }, {passive:true});
 
-  // микро-выходы игнорируем (буфер 48px)
+  // ignore micro-exits (48px buffer)
   container.addEventListener('pointerleave', (e)=>{
     if (openIndex !== -1) return;
     const r = container.getBoundingClientRect(), M = 48;
@@ -231,9 +231,9 @@
     clearClasses();
   }, {passive:true});
 
-  // клик: по карточке или по её зоне — открывает/закрывает выбранную
+  // click: on a card or its area — opens/closes the selected one
   container.addEventListener('click', (e)=>{
-    // если кликнули по карточке — берём её индекс
+    // if clicked on a card — take its index
     const el = e.target.closest('.item');
     let idx = -1;
     if (el) idx = items.indexOf(el);
@@ -243,7 +243,7 @@
     if (openIndex === idx) closeOpen(); else openItem(idx);
   });
 
-  // доступность
+  // accessibility
   items.forEach((el, idx)=>{
     el.addEventListener('keydown', (e)=>{
       if ((e.key==='Enter'||e.key===' ') && !e.repeat){
